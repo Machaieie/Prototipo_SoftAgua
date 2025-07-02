@@ -1,0 +1,1829 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SoftAgua - Gestão de Água</title>
+    <!-- Bootstrap CSS -->
+    <link href="/css/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --sidebar-width: 250px;
+            --sidebar-collapsed-width: 60px;
+            --top-nav-height: 56px;
+        }
+
+        body {
+            padding-top: var(--top-nav-height);
+        }
+
+        /* Sidebar responsivo */
+        .sidebar {
+            width: var(--sidebar-width);
+            height: calc(100vh - var(--top-nav-height));
+            position: fixed;
+            top: var(--top-nav-height);
+            left: 0;
+            background-color: #f8f9fa;
+            border-right: 1px solid #dee2e6;
+            padding-top: 20px;
+            transition: all 0.3s;
+            z-index: 1000;
+            max-height: 100vh;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        .sidebar-collapsed {
+            width: var(--sidebar-collapsed-width);
+        }
+
+        .sidebar-collapsed .nav-link span {
+            display: none;
+        }
+
+        .sidebar-collapsed .nav-link i {
+            margin-right: 0;
+            font-size: 1.2rem;
+        }
+
+        .sidebar-collapsed h4 {
+            display: none;
+        }
+
+        .z-index-1 {
+            z-index: 1;
+        }
+
+        #searchResults {
+            border: 1px solid #dee2e6;
+            border-radius: 0.25rem;
+            margin-top: 0.25rem;
+        }
+
+        #searchResults button {
+            text-align: left;
+            border: none;
+            border-radius: 0;
+        }
+
+        #searchResults button:hover {
+            background-color: #f8f9fa;
+        }
+
+        .telefone-group .btn {
+            width: 40px;
+        }
+
+        /* Estilo para campos obrigatórios */
+        .form-label[required]::after {
+            content: " *";
+            color: red;
+        }
+
+        .sidebar .nav-link {
+            color: #212529;
+            padding: 10px 15px;
+            margin: 5px 10px;
+            border-radius: 5px;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        .sidebar .nav-link:hover {
+            background-color: #e9ecef;
+        }
+
+        .sidebar .nav-link.active {
+            background-color: #0d6efd;
+            color: white;
+        }
+
+        /* Conteúdo principal responsivo */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding: 20px;
+            transition: all 0.3s;
+        }
+
+        .main-content-expanded {
+            margin-left: var(--sidebar-collapsed-width);
+        }
+
+        /* Ajustes para mobile */
+        @media (max-width: 992px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .sidebar-mobile-show {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .main-content-mobile-push {
+                margin-left: 0;
+            }
+        }
+
+        /* Cards do dashboard */
+        .card-dashboard {
+            transition: transform 0.2s;
+            min-height: 120px;
+        }
+
+        .card-dashboard:hover {
+            transform: translateY(-5px);
+        }
+
+        /* Tabelas responsivas */
+        .table-responsive {
+            max-height: 500px;
+        }
+
+        /* Barra superior */
+        .top-navbar {
+            height: var(--top-nav-height);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1100;
+        }
+
+        /* Botão toggle sidebar */
+        .sidebar-toggle {
+            border: none;
+            background: none;
+            font-size: 1.25rem;
+        }
+
+        /* Ajustes para formulários em mobile */
+        .form-mobile-stack .form-group {
+            margin-bottom: 15px;
+        }
+
+        .badge-disabled {
+            background-color: #6c757d;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Barra superior -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary top-navbar">
+        <div class="container-fluid">
+            <button class="sidebar-toggle btn text-white me-2" id="sidebarToggle">
+                <i class="bi bi-list"></i>
+            </button>
+            <a class="navbar-brand" href="#">SoftAgua</a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#topNavbar">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="topNavbar">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-bell"></i>
+                            <span class="badge bg-danger rounded-pill">3</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li>
+                                <h6 class="dropdown-header">Notificações</h6>
+                            </li>
+                            <li><a class="dropdown-item" href="#">Novo pagamento registrado</a></li>
+                            <li><a class="dropdown-item" href="#">5 faturas vencem hoje</a></li>
+                            <li><a class="dropdown-item" href="#">Atualização do sistema disponível</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-circle"></i> Admin
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#"><i class="bi bi-person"></i> Perfil</a></li>
+                            <li><a class="dropdown-item" href="#"><i class="bi bi-gear"></i> Configurações</a></li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li><a class="dropdown-item" href="#"><i class="bi bi-box-arrow-right"></i> Sair</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="d-flex">
+        <!-- Sidebar -->
+        <div class="sidebar" id="sidebar">
+            <h4 class="px-3 mb-4 d-none d-lg-block">SoftAgua</h4>
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a class="nav-link active" href="#dashboard" data-bs-toggle="tab">
+                        <i class="bi bi-speedometer2 me-2"></i> <span>Dashboard</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#clientes" data-bs-toggle="tab">
+                        <i class="bi bi-people me-2"></i> <span>Clientes</span>
+                    </a>
+                </li>
+                <!-- <li class="nav-item">
+                    <a class="nav-link" href="#contratos" data-bs-toggle="tab">
+                        <i class="bi bi-file-earmark-text me-2"></i> <span>Contratos</span>
+                    </a>
+                </li> -->
+                <li class="nav-item">
+                    <a class="nav-link" href="#leituras" data-bs-toggle="tab">
+                        <i class="bi bi-water me-2"></i> <span>Leituras</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#faturas" data-bs-toggle="tab">
+                        <i class="bi bi-receipt me-2"></i> <span>Faturas</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#pagamentos" data-bs-toggle="tab">
+                        <i class="bi bi-cash-coin me-2"></i> <span>Pagamentos</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#movimentos" data-bs-toggle="tab">
+                        <i class="bi bi-clock-history me-2"></i> <span>Movimentos</span>
+                    </a>
+                </li>
+
+                <li class="nav-item mt-3 d-none d-lg-block">
+                    <a class="nav-link" href="#configuracoes" data-bs-toggle="tab">
+                        <i class="bi bi-gear me-2"></i> <span>Configurações</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content w-100" id="mainContent">
+            <div class="tab-content">
+                <!-- Dashboard -->
+                <div class="tab-pane fade show active" id="dashboard">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h2><i class="bi bi-speedometer2"></i> Dashboard</h2>
+                        <div class="d-flex">
+                            <div class="dropdown me-2">
+                                <button class="btn btn-outline-secondary dropdown-toggle" type="button"
+                                    data-bs-toggle="dropdown">
+                                    <i class="bi bi-calendar"></i> Junho 2025
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="#">Maio 2025</a></li>
+                                    <li><a class="dropdown-item" href="#">Abril 2025</a></li>
+                                    <li><a class="dropdown-item" href="#">Março 2025</a></li>
+                                </ul>
+                            </div>
+                            <button class="btn btn-primary d-none d-md-block">
+                                <i class="bi bi-arrow-repeat"></i> Atualizar
+                            </button>
+                        </div>
+                    </div>
+                    <hr>
+
+                    <div class="row mb-4">
+                        <!-- Cards do Dashboard - ajustados para mobile -->
+                        <div class="col-6 col-md-3 mb-3">
+                            <div class="card card-dashboard text-white bg-primary h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title">Clientes Ativos</h5>
+                                    <h2 class="card-text">1.245</h2>
+                                    <a href="#clientes" class="text-white small">Ver detalhes <i
+                                            class="bi bi-arrow-right"></i></a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3 mb-3">
+                            <div class="card card-dashboard text-white bg-success h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title">Leituras Pend.</h5>
+                                    <h2 class="card-text">87</h2>
+                                    <a href="#leituras" class="text-white small">Registrar <i
+                                            class="bi bi-arrow-right"></i></a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3 mb-3">
+                            <div class="card card-dashboard text-white bg-warning h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title">Faturas Aberto</h5>
+                                    <h2 class="card-text">326</h2>
+                                    <a href="#faturas" class="text-white small">Emitir <i
+                                            class="bi bi-arrow-right"></i></a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3 mb-3">
+                            <div class="card card-dashboard text-white bg-info h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title">Pag. Hoje</h5>
+                                    <h2 class="card-text">42</h2>
+                                    <a href="#pagamentos" class="text-white small">Registrar <i
+                                            class="bi bi-arrow-right"></i></a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-12 col-lg-6 mb-4">
+                            <div class="card h-100">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <span>Consumo Mensal (m³)</span>
+                                    <select class="form-select form-select-sm w-auto">
+                                        <option>2025</option>
+                                        <option>2024</option>
+                                    </select>
+                                </div>
+                                <div class="card-body">
+                                    <canvas id="consumoChart" height="250"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12 col-lg-6 mb-4">
+                            <div class="card h-100">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <span>Pagamentos por Mês</span>
+                                    <select class="form-select form-select-sm w-auto">
+                                        <option>2025</option>
+                                        <option>2024</option>
+                                    </select>
+                                </div>
+                                <div class="card-body">
+                                    <canvas id="pagamentosChart" height="250"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    Últimos Pagamentos
+                                </div>
+                                <div class="card-body p-0">
+                                    <div class="table-responsive">
+                                        <table class="table table-striped table-hover mb-0">
+                                            <thead>
+                                                <tr>
+                                                    <th>Nº Recibo</th>
+                                                    <th class="d-none d-md-table-cell">Cliente</th>
+                                                    <th>Valor</th>
+                                                    <th class="d-none d-sm-table-cell">Data</th>
+                                                    <th>Ações</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td>REC-2025-156</td>
+                                                    <td class="d-none d-md-table-cell">João da Silva</td>
+                                                    <td>1.250,00 MT</td>
+                                                    <td class="d-none d-sm-table-cell">10/06/2025</td>
+                                                    <td>
+                                                        <button class="btn btn-sm btn-outline-primary"><i
+                                                                class="bi bi-eye"></i></button>
+                                                        <button
+                                                            class="btn btn-sm btn-outline-secondary d-none d-md-inline-block"><i
+                                                                class="bi bi-printer"></i></button>
+                                                    </td>
+                                                </tr>
+                                                <!-- Mais linhas... -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Clientes -->
+                <div class="tab-pane fade" id="clientes">
+                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4">
+                        <h2><i class="bi bi-people"></i> Clientes</h2>
+                        <div class="mt-2 mt-md-0">
+                            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#novoClienteModal">
+                                <i class="bi bi-plus"></i> <span class="d-none d-md-inline">Novo Cliente</span>
+                            </button>
+                            <button class="btn btn-outline-secondary ms-2">
+                                <i class="bi bi-file-earmark-excel"></i> <span
+                                    class="d-none d-md-inline">Exportar</span>
+                            </button>
+                        </div>
+                    </div>
+                    <hr>
+
+                    <div class="row mb-3">
+                        <div class="col-12 col-md-6 mb-2 mb-md-0">
+                            <div class="input-group">
+                                <input type="text" class="form-control" placeholder="Pesquisar cliente...">
+                                <button class="btn btn-outline-secondary" type="button">
+                                    <i class="bi bi-search"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-8 col-md-3 mb-2 mb-md-0">
+                            <select class="form-select">
+                                <option selected>Filtrar por estado</option>
+                                <option>Ativos</option>
+                                <option>Inativos</option>
+                                <option>Em atraso</option>
+                            </select>
+                        </div>
+                        <div class="col-4 col-md-3">
+                            <button class="btn btn-outline-secondary w-100">
+                                <i class="bi bi-filter d-md-none"></i>
+                                <span class="d-none d-md-inline">Filtrar</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Nº Cliente</th>
+                                    <th>Nome</th>
+                                    <th class="d-none d-lg-table-cell">Endereço</th>
+                                    <th class="d-none d-md-table-cell">Data de Ligação</th>
+                                    <th>Estado</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>1001</td>
+                                    <td>João da Silva</td>
+                                    <td class="d-none d-lg-table-cell">Av. 25 de Setembro, 123</td>
+                                    <td class="d-none d-md-table-cell">15/01/2023</td>
+                                    <td><span class="badge bg-success">Ativo</span></td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <button class="btn btn-outline-primary"><i class="bi bi-eye"></i></button>
+                                            <button class="btn btn-outline-secondary"><i
+                                                    class="bi bi-pencil"></i></button>
+                                            <button class="btn btn-outline-danger"><i
+                                                    class="bi bi-slash-circle"></i></button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>1002</td>
+                                    <td>Leopoldo Matsinhe</td>
+                                    <td class="d-none d-lg-table-cell">Av. 25 de Setembro, 123</td>
+                                    <td class="d-none d-md-table-cell">10/03/2023</td>
+                                    <td><span class="badge bg-success">Ativo</span></td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <button class="btn btn-outline-primary"><i class="bi bi-eye"></i></button>
+                                            <button class="btn btn-outline-secondary"><i
+                                                    class="bi bi-pencil"></i></button>
+                                            <button class="btn btn-outline-danger"><i
+                                                    class="bi bi-slash-circle"></i></button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>1003</td>
+                                    <td>Madalena Chiboleca</td>
+                                    <td class="d-none d-lg-table-cell">Av. 25 de Setembro, 123</td>
+                                    <td class="d-none d-md-table-cell">22/02/2023</td>
+                                    <td><span class="badge badge-disabled">Inativo</span></td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <button class="btn btn-outline-primary"><i class="bi bi-eye"></i></button>
+                                            <button class="btn btn-outline-secondary"><i
+                                                    class="bi bi-pencil"></i></button>
+                                            <button class="btn btn-outline-success"><i
+                                                    class="bi bi-check-circle"></i></button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <nav aria-label="Page navigation" class="mt-3">
+                        <ul class="pagination justify-content-center flex-wrap">
+                            <li class="page-item disabled">
+                                <a class="page-link" href="#" tabindex="-1">Anterior</a>
+                            </li>
+                            <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                            <li class="page-item"><a class="page-link" href="#">2</a></li>
+                            <li class="page-item"><a class="page-link" href="#">3</a></li>
+                            <li class="page-item">
+                                <a class="page-link" href="#">Próxima</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+
+                <!-- Contratos -->
+                <div class="tab-pane fade" id="contratos">
+                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4">
+                        <h2><i class="bi bi-file-earmark-text"></i> Contratos</h2>
+                        <div class="mt-2 mt-md-0">
+                            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#novoContratoModal">
+                                <i class="bi bi-plus"></i> <span class="d-none d-md-inline">Novo Contrato</span>
+                            </button>
+                        </div>
+                    </div>
+                    <hr>
+
+                    <div class="row mb-3">
+                        <div class="col-md-4 mb-2">
+                            <label class="form-label">Período Inicial</label>
+                            <input type="month" class="form-control">
+                        </div>
+                        <div class="col-md-4 mb-2">
+                            <label class="form-label">Bairro</label>
+                            <select class="form-select">
+                                <option>Todos os bairros</option>
+                                <option>Central</option>
+                                <option>Mavalane</option>
+                                <option>Zimpeto</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 mb-2">
+                            <button class="btn btn-primary w-100 mt-4">
+                                <i class="bi bi-search"></i> Filtrar
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Nº Contrato</th>
+                                    <th>Cliente</th>
+                                    <th class="d-none d-md-table-cell">Endereço</th>
+                                    <th>Data Início</th>
+                                    <th>Estado</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>CT-2023-001</td>
+                                    <td>João da Silva</td>
+                                    <td class="d-none d-md-table-cell">Av. 25 de Setembro, 123</td>
+                                    <td>15/01/2023</td>
+                                    <td><span class="badge bg-success">Ativo</span></td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <button class="btn btn-outline-primary"><i class="bi bi-eye"></i></button>
+                                            <button class="btn btn-outline-secondary"><i
+                                                    class="bi bi-pencil"></i></button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Leituras -->
+                <div class="tab-pane fade" id="leituras">
+                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4">
+                        <h2><i class="bi bi-water"></i> Leituras</h2>
+                        <div class="mt-2 mt-md-0">
+                            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#novaLeituraModal">
+                                <i class="bi bi-plus"></i> <span class="d-none d-md-inline">Nova Leitura</span>
+                            </button>
+                            <button class="btn btn-success ms-2">
+                                <i class="bi bi-file-earmark-excel"></i> <span
+                                    class="d-none d-md-inline">Exportar</span>
+                            </button>
+                        </div>
+                    </div>
+                    <hr>
+
+                    <div class="row mb-3">
+                        <div class="col-6 col-md-3 mb-2 mb-md-0">
+                            <select class="form-select">
+                                <option selected>Selecione o mês</option>
+                                <option>Junho 2025</option>
+                                <option>Maio 2025</option>
+                            </select>
+                        </div>
+                        <div class="col-6 col-md-3 mb-2 mb-md-0">
+                            <select class="form-select">
+                                <option selected>Selecione o bairro</option>
+                                <option>Central</option>
+                                <option>Mavalane</option>
+                            </select>
+                        </div>
+                        <div class="col-12 col-md-6 mt-2 mt-md-0">
+                            <div class="input-group">
+                                <input type="text" class="form-control" placeholder="Pesquisar cliente...">
+                                <button class="btn btn-outline-secondary" type="button">
+                                    <i class="bi bi-search"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Nº Consumidor</th>
+                                    <th>Cliente</th>
+                                    <th>Data Emissão</th>
+                                    <th>Leitura Anterior</th>
+                                    <th>Leitura Atual</th>
+                                    <th>Valor a Pagar</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>4/18</td>
+                                    <td>João da Silva</td>
+                                    <td>10/06/2025</td>
+                                    <td>125</td>
+                                    <td>145</td>
+                                    <td>1.250,00 MT</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary"><i
+                                                class="bi bi-eye"></i></button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Faturas -->
+                <div class="tab-pane fade" id="faturas">
+                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4">
+                        <h2><i class="bi bi-receipt"></i> Faturas</h2>
+                        <div class="mt-2 mt-md-0">
+                            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#emitirFaturasModal">
+                                <i class="bi bi-file-earmark-text"></i> <span class="d-none d-md-inline">Emitir
+                                    Faturas</span>
+                            </button>
+                            <button class="btn btn-success ms-2">
+                                <i class="bi bi-printer"></i> <span class="d-none d-md-inline">Imprimir</span>
+                            </button>
+                        </div>
+                    </div>
+                    <hr>
+
+                    <div class="row mb-3">
+                        <div class="col-6 col-md-3 mb-2 mb-md-0">
+                            <select class="form-select">
+                                <option selected>Selecione o mês</option>
+                                <option>Junho 2025</option>
+                                <option>Maio 2025</option>
+                            </select>
+                        </div>
+                        <div class="col-6 col-md-3 mb-2 mb-md-0">
+                            <select class="form-select">
+                                <option selected>Filtrar por status</option>
+                                <option>Pagas</option>
+                                <option>Em aberto</option>
+                                <option>Vencidas</option>
+                            </select>
+                        </div>
+                        <div class="col-12 col-md-6 mt-2 mt-md-0">
+                            <div class="input-group">
+                                <input type="text" class="form-control" placeholder="Pesquisar cliente ou Nº fatura...">
+                                <button class="btn btn-outline-secondary" type="button">
+                                    <i class="bi bi-search"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Nº Fatura</th>
+                                    <th>Cliente</th>
+                                    <th>Período</th>
+                                    <th>Valor a Pagar</th>
+                                    <th>Data Vencimento</th>
+                                    <th>Status</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>FAT-2025-001</td>
+                                    <td>João da Silva</td>
+                                    <td>Jun/2025</td>
+                                    <td>1.250,00 MT</td>
+                                    <td>15/07/2025</td>
+                                    <td><span class="badge bg-warning">Em aberto</span></td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <button class="btn btn-outline-primary"><i class="bi bi-eye"></i></button>
+                                            <button class="btn btn-outline-success"><i class="bi bi-send"></i></button>
+                                            <button class="btn btn-outline-secondary"><i
+                                                    class="bi bi-printer"></i></button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Pagamentos -->
+                <div class="tab-pane fade" id="pagamentos">
+                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4">
+                        <h2><i class="bi bi-cash-coin"></i> Pagamentos</h2>
+                        <button class="btn btn-primary mt-2 mt-md-0" data-bs-toggle="modal"
+                            data-bs-target="#registrarPagamentoModal">
+                            <i class="bi bi-plus"></i> <span class="d-none d-md-inline">Registrar Pagamento</span>
+                        </button>
+                    </div>
+                    <hr>
+
+                    <div class="row mb-3">
+                        <div class="col-6 col-md-3 mb-2 mb-md-0">
+                            <select class="form-select">
+                                <option selected>Filtrar por mês</option>
+                                <option>Junho 2025</option>
+                                <option>Maio 2025</option>
+                            </select>
+                        </div>
+                        <div class="col-6 col-md-3 mb-2 mb-md-0">
+                            <select class="form-select">
+                                <option selected>Filtrar por método</option>
+                                <option>Dinheiro</option>
+                                <option>MB Way</option>
+                                <option>Transferência</option>
+                            </select>
+                        </div>
+                        <div class="col-12 col-md-6 mt-2 mt-md-0">
+                            <div class="input-group">
+                                <input type="text" class="form-control" placeholder="Pesquisar cliente ou Nº fatura...">
+                                <button class="btn btn-outline-secondary" type="button">
+                                    <i class="bi bi-search"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Nº Cliente</th>
+                                    <th>Cliente</th>
+                                    <th>Data Pagamento</th>
+                                    <th>Valor</th>
+                                    <th>Dívida</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>1001</td>
+                                    <td>João da Silva</td>
+                                    <td>10/06/2025</td>
+                                    <td>1.250,00 MT</td>
+                                    <td>0,00 MT</td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <button class="btn btn-outline-primary"><i class="bi bi-eye"></i></button>
+                                            <button class="btn btn-outline-secondary"><i
+                                                    class="bi bi-printer"></i></button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Movimentos do Sistema -->
+                <div class="tab-pane fade" id="movimentos">
+                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4">
+                        <h2><i class="bi bi-clock-history"></i> Movimentos do Sistema</h2>
+                        <button class="btn btn-success mt-2 mt-md-0">
+                            <i class="bi bi-file-earmark-excel"></i> <span class="d-none d-md-inline">Exportar</span>
+                        </button>
+                    </div>
+
+                    <hr>
+
+                    <!-- Filtros -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <label class="form-label">Tipo de Movimento</label>
+                            <select class="form-select">
+                                <option selected>Todos</option>
+                                <option>Login</option>
+                                <option>Logout</option>
+                                <option>Cadastro</option>
+                                <option>Atualização</option>
+                                <option>Pagamento</option>
+                                <option>Faturação</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Data Inicial</label>
+                            <input type="date" class="form-control">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Data Final</label>
+                            <input type="date" class="form-control">
+                        </div>
+                    </div>
+
+                    <button class="btn btn-primary mb-4"><i class="bi bi-search"></i> Aplicar Filtros</button>
+
+                    <!-- Tabela de Movimentos -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Histórico de Ações no Sistema</h5>
+                        </div>
+                        <div class="card-body table-responsive">
+                            <table class="table table-bordered table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Data/Hora</th>
+                                        <th>Usuário</th>
+                                        <th>Tipo</th>
+                                        <th>Descrição</th>
+                                        <th>Detalhes</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Exemplo de dados fictícios -->
+                                    <tr>
+                                        <td>01/07/2025 08:32</td>
+                                        <td>admin</td>
+                                        <td>Login</td>
+                                        <td>Autenticação no sistema</td>
+                                        <td>IP: 192.168.1.10</td>
+                                    </tr>
+                                    <tr>
+                                        <td>01/07/2025 08:35</td>
+                                        <td>admin</td>
+                                        <td>Cadastro</td>
+                                        <td>Novo cliente registrado</td>
+                                        <td>Nome: João Mutola, Nº Consumidor: 12/23</td>
+                                    </tr>
+                                    <tr>
+                                        <td>01/07/2025 08:42</td>
+                                        <td>operador1</td>
+                                        <td>Pagamento</td>
+                                        <td>Pagamento registrado</td>
+                                        <td>Fatura: 2394/FN/25, Valor: 300 MT</td>
+                                    </tr>
+                                    <tr>
+                                        <td>01/07/2025 09:01</td>
+                                        <td>admin</td>
+                                        <td>Atualização</td>
+                                        <td>Alteração da tarifa base</td>
+                                        <td>De: 150 MT → Para: 180 MT</td>
+                                    </tr>
+                                    <tr>
+                                        <td>01/07/2025 10:00</td>
+                                        <td>admin</td>
+                                        <td>Logout</td>
+                                        <td>Saída do sistema</td>
+                                        <td>IP: 192.168.1.10</td>
+                                    </tr>
+                                    <!-- Adicione mais linhas conforme necessário -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- Configurações -->
+                <div class="tab-pane fade" id="configuracoes">
+                    <div class="row">
+
+                        <!-- Configurações de Tarifas -->
+                        <div class="col-12 col-lg-6 mb-4">
+                            <div class="card h-100">
+                                <div class="card-header">Tarifas</div>
+                                <div class="card-body">
+                                    <form>
+                                        <div class="mb-3">
+                                            <label class="form-label">Tarifa Básica (MT)</label>
+                                            <input type="number" class="form-control" value="150.00" step="0.01">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Valor por m³ (MT)</label>
+                                            <input type="number" class="form-control" value="50.00" step="0.01">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Multa por atraso (%)</label>
+                                            <input type="number" class="form-control" value="5.0" step="0.1">
+                                        </div>
+                                        <button type="submit" class="btn btn-primary w-100 w-md-auto">Salvar</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Configurações de Usuários -->
+                        <div class="col-12 col-lg-6 mb-4">
+                            <div class="card h-100">
+                                <div class="card-header">Gestão de Usuários</div>
+                                <div class="card-body">
+                                    <form>
+                                        <div class="mb-3">
+                                            <label class="form-label">Nome de Usuário</label>
+                                            <input type="text" class="form-control" placeholder="ex: edwin">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Palavra-passe</label>
+                                            <input type="password" class="form-control">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Função</label>
+                                            <select class="form-select">
+                                                <option>Administrador</option>
+                                                <option>Operador</option>
+                                                <option>Leiturista</option>
+                                            </select>
+                                        </div>
+                                        <button type="submit" class="btn btn-success w-100 w-md-auto">Criar
+                                            Usuário</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tabela de Usuários -->
+                        <div class="col-12 mb-4">
+                            <div class="card">
+                                <div class="card-header">Usuários Cadastrados</div>
+                                <div class="card-body">
+                                    <table class="table table-sm table-hover align-middle">
+                                        <thead>
+                                            <tr>
+                                                <th>#</th>
+                                                <th>Usuário</th>
+                                                <th>Função</th>
+                                                <th>Ações</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>1</td>
+                                                <td>admin</td>
+                                                <td>Administrador</td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-warning">Editar</button>
+                                                    <button class="btn btn-sm btn-danger">Excluir</button>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>2</td>
+                                                <td>joao</td>
+                                                <td>Operador</td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-warning">Editar</button>
+                                                    <button class="btn btn-sm btn-danger">Excluir</button>
+                                                </td>
+                                            </tr>
+                                            <!-- Mais usuários aqui -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Outras Configurações -->
+                        <div class="col-12 col-lg-6 mb-4">
+                            <div class="card h-100">
+                                <div class="card-header">Outras Configurações</div>
+                                <div class="card-body">
+                                    <form>
+                                        <div class="mb-3">
+                                            <label class="form-label">Nome do Sistema</label>
+                                            <input type="text" class="form-control" value="Sistema de Água - SoftAgua">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Idioma</label>
+                                            <select class="form-select">
+                                                <option selected>Português</option>
+                                                <option>Inglês</option>
+                                                <option>Francês</option>
+                                            </select>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Fecho Automático do Mês</label>
+                                            <input type="date" class="form-control" value="2025-07-31">
+                                        </div>
+                                        <button type="submit" class="btn btn-primary">Salvar Configurações</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Backup Manual -->
+                        <div class="col-12 col-lg-6 mb-4">
+                            <div class="card h-100">
+                                <div class="card-header">Backup do Sistema</div>
+                                <div
+                                    class="card-body d-flex flex-column justify-content-center align-items-start gap-3">
+                                    <p class="text-muted">Faça um backup manual dos dados do sistema para evitar perdas.
+                                    </p>
+                                    <button class="btn btn-outline-primary">Fazer Backup Agora</button>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Modais -->
+        <!-- Modal Novo Cliente -->
+        <div class="modal fade" id="novoClienteModal" tabindex="-1" aria-labelledby="novoClienteModalLabel"
+            aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="novoClienteModalLabel">Registrar Novo Cliente</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+
+                    <div class="modal-body">
+                        <form id="formCliente">
+
+                            <!-- Posto -->
+                            <div class="card mb-3 p-3">
+                                <div class="form-floating">
+                                    <select class="form-select" name="posto" id="posto" required>
+                                        <option value="">Selecione o posto...</option>
+                                        <option>Posto Administrativo da Polana</option>
+                                        <option>Posto Administrativo da Mafalala</option>
+                                        <option>Posto Administrativo de Hulene</option>
+                                        <option>Posto Administrativo do Alto-Maé</option>
+                                    </select>
+                                    <label for="posto">Posto*</label>
+                                </div>
+                            </div>
+
+                            <!-- Número do consumidor e data de assinatura -->
+                            <div class="card mb-3 p-3">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <div class="form-floating">
+                                            <input type="number" class="form-control" name="numeroConsumidor"
+                                                id="numeroConsumidor" required>
+                                            <label for="numeroConsumidor">Nº do Consumidor*</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-floating">
+                                            <input type="date" class="form-control" name="dataAssinatura"
+                                                id="dataAssinatura" required>
+                                            <label for="dataAssinatura">Data da Assinatura*</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Dados Pessoais -->
+                            <div class="card mb-3 p-3">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <div class="form-floating">
+                                            <input type="text" class="form-control" name="nome" id="nome" required>
+                                            <label for="nome">Nome Completo*</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-floating">
+                                            <input type="date" class="form-control" name="data_nascimento"
+                                                id="data_nascimento" required>
+                                            <label for="data_nascimento">Data de Nascimento*</label>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <div class="form-floating">
+                                            <input type="text" class="form-control" name="bi" id="bi" required>
+                                            <label for="bi">Número do BI/Identificação*</label>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label class="form-label">Arquivo*</label>
+                                        <input type="file" class="form-control" name="arquivo" required>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <div class="form-floating">
+                                            <select class="form-select" name="bairro" id="bairro" required>
+                                                <option value="">Selecione o bairro...</option>
+                                                <option>Central</option>
+                                                <option>Mavalane</option>
+                                                <option>Zimpeto</option>
+                                                <option>Polana</option>
+                                                <option>Alto Maé</option>
+                                            </select>
+                                            <label for="bairro">Bairro*</label>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <div class="form-floating">
+                                            <input type="text" class="form-control" name="endereco" id="endereco"
+                                                required>
+                                            <label for="endereco">Endereço*</label>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label class="form-label">Telefone(s)*</label>
+                                        <div id="telefonesContainer">
+                                            <div class="input-group mb-2 telefone-group">
+                                                <input type="tel" class="form-control" name="telefone[]" required>
+                                                <button class="btn btn-outline-secondary" type="button"
+                                                    onclick="adicionarTelefone()">
+                                                    <i class="bi bi-plus"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <small class="text-muted">Adicione todos os números de contato do
+                                            cliente</small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Dados de Ligação -->
+                            <div class="card mb-3 p-3">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <div class="form-floating">
+                                            <input type="date" class="form-control" name="data_ligacao"
+                                                id="data_ligacao">
+                                            <label for="data_ligacao">Data de Ligação</label>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <div class="form-floating">
+                                            <input type="number" class="form-control" name="leitura_inicial"
+                                                id="leitura_inicial">
+                                            <label for="leitura_inicial">Leitura Inicial</label>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <div class="form-floating">
+                                            <input type="month" class="form-control" name="periodo_inicial"
+                                                id="periodo_inicial">
+                                            <label for="periodo_inicial">Período Inicial</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+
+                        </form>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-success" onclick="registrarCliente()">Novo Registo</button>
+                        <button type="button" class="btn btn-primary">Salvar</button>
+                        <button type="button" class="btn btn-warning" data-bs-dismiss="modal">Cancelar</button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Modal Nova Leitura -->
+        <div class="modal fade" id="novaLeituraModal" tabindex="-1" aria-labelledby="novaLeituraModalLabel"
+            aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="novaLeituraModalLabel">Nova Leitura</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form>
+                            <div class="mb-3">
+                                <label class="form-label">Número do Consumidor</label>
+                                <input type="text" class="form-control" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Mês/Ano</label>
+                                <input type="month" class="form-control" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Data de Emissão</label>
+                                <input type="date" class="form-control" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Cliente</label>
+                                <select class="form-select" required>
+                                    <option value="">Selecione um cliente...</option>
+                                    <option>João da Silva (1001)</option>
+                                    <option>Maria José (1002)</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Leitura Anterior</label>
+                                <input type="number" class="form-control" value="125" readonly>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Leitura Atual</label>
+                                <input type="number" class="form-control" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Valor a Pagar (MT)</label>
+                                <input type="number" class="form-control" step="0.01" required>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="button" class="btn btn-primary">Registrar Leitura</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Novo Contrato -->
+        <div class="modal fade" id="novoContratoModal" tabindex="-1" aria-labelledby="novoContratoModalLabel"
+            aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="novoContratoModalLabel">Novo Contrato</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form>
+                            <div class="mb-3">
+                                <label class="form-label">Cliente</label>
+                                <select class="form-select" required>
+                                    <option value="">Selecione um cliente...</option>
+                                    <option>João da Silva (1001)</option>
+                                    <option>Maria José (1002)</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Período Inicial</label>
+                                <input type="month" class="form-control" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Bairro</label>
+                                <select class="form-select" required>
+                                    <option value="">Selecione...</option>
+                                    <option>Central</option>
+                                    <option>Mavalane</option>
+                                    <option>Zimpeto</option>
+                                </select>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="button" class="btn btn-primary">Salvar Contrato</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Registrar Pagamento -->
+        <div class="modal fade" id="registrarPagamentoModal" tabindex="-1"
+            aria-labelledby="registrarPagamentoModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-xl">
+                <div class="modal-content">
+
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="registrarPagamentoModalLabel">Registrar Pagamento</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                    </div>
+
+                    <div class="modal-body">
+                        <div class="row">
+                            <!-- Lado Esquerdo: Ordenar e Lista -->
+                            <div class="col-md-4 border-end">
+                                <div class="mb-3">
+                                    <label class="form-label">Ordenar</label><br>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="ordenarPor" checked>
+                                        <label class="form-check-label">Por Nº do Consumidor</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="ordenarPor">
+                                        <label class="form-check-label">Por Nome</label>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Clientes</label>
+                                    <select class="form-select" id="listaClientes" onchange="preencherDadosCliente()">
+                                        <option value="">Selecione...</option>
+                                        <option value="4/18">4/18 - Ildo Mendes Ngoca</option>
+                                        <option value="2/18">2/18 - Manuel</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Lado Direito: Dados e Faturas -->
+                            <div class="col-md-8">
+                                <div class="mb-3 row">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Nº:</label>
+                                        <input type="text" class="form-control" id="numeroCliente" readonly>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Nome:</label>
+                                        <input type="text" class="form-control" id="nomeCliente" readonly>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Bairro:</label>
+                                        <input type="text" class="form-control" id="bairroCliente" readonly>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Morada:</label>
+                                        <input type="text" class="form-control" id="moradaCliente" readonly>
+                                    </div>
+                                </div>
+
+                                <table class="table table-bordered table-sm align-middle">
+                                    <thead>
+                                        <tr>
+                                            <th></th>
+                                            <th>Nº Fatura</th>
+                                            <th>Período</th>
+                                            <th>Valor</th>
+                                            <th>Multa</th>
+                                            <th>Saldo</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tabelaFaturas"></tbody>
+                                </table>
+
+                                <div class="d-flex justify-content-between">
+                                    <strong class="text-success">Valor Selecionado: <span id="valorSelecionado">0</span>
+                                        MT</strong>
+                                    <strong class="text-primary">Total da Dívida: <span id="totalDivida">0</span>
+                                        MT</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button class="btn btn-primary" onclick="processarPagamento()">Processar Pagamento</button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Modal Emitir Faturas -->
+        <div class="modal fade" id="emitirFaturasModal" tabindex="-1" aria-labelledby="emitirFaturasModalLabel"
+            aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="emitirFaturasModalLabel">Emitir Faturas</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form>
+                            <div class="mb-3">
+                                <label class="form-label">Mês/Ano</label>
+                                <input type="month" class="form-control" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Data de Vencimento</label>
+                                <input type="date" class="form-control" required>
+                            </div>
+                            <div class="mb-3 form-check">
+                                <input type="checkbox" class="form-check-input" id="enviarSMS">
+                                <label class="form-check-label" for="enviarSMS">Enviar notificação por SMS</label>
+                            </div>
+                            <div class="alert alert-info">
+                                Serão geradas faturas para todos os clientes com leituras registradas para o mês
+                                selecionado.
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="button" class="btn btn-primary">Emitir Faturas</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bootstrap JS Bundle with Popper -->
+        <script src='/css/bootstrap/js/bootstrap.bundle.js'></script>
+        <!-- Chart.js -->
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+        <script>
+            // Gráfico de Consumo
+            const consumoCtx = document.getElementById('consumoChart').getContext('2d');
+            const consumoChart = new Chart(consumoCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun'],
+                    datasets: [{
+                        label: 'Consumo (m³)',
+                        data: [1200, 1900, 1500, 2000, 1800, 2100],
+                        backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            // Gráfico de Pagamentos
+            const pagamentosCtx = document.getElementById('pagamentosChart').getContext('2d');
+            const pagamentosChart = new Chart(pagamentosCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun'],
+                    datasets: [{
+                        label: 'Pagamentos (MT)',
+                        data: [85000, 92000, 88000, 95000, 91000, 97000],
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 2,
+                        tension: 0.1,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: false
+                        }
+                    }
+                }
+            });
+        </script>
+        <script>
+            // Controle do sidebar responsivo
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.getElementById('mainContent');
+            const sidebarToggle = document.getElementById('sidebarToggle');
+
+            let sidebarCollapsed = false;
+
+            sidebarToggle.addEventListener('click', function () {
+                if (window.innerWidth >= 992) {
+                    // Desktop - alternar entre collapsed e expandido
+                    sidebarCollapsed = !sidebarCollapsed;
+                    if (sidebarCollapsed) {
+                        sidebar.classList.add('sidebar-collapsed');
+                        mainContent.classList.add('main-content-expanded');
+                    } else {
+                        sidebar.classList.remove('sidebar-collapsed');
+                        mainContent.classList.remove('main-content-expanded');
+                    }
+                } else {
+                    // Mobile - mostrar/ocultar sidebar
+                    sidebar.classList.toggle('sidebar-mobile-show');
+                    mainContent.classList.toggle('main-content-mobile-push');
+                }
+            });
+
+            // Fechar sidebar ao clicar em um item no mobile
+            if (window.innerWidth < 992) {
+                document.querySelectorAll('.sidebar .nav-link').forEach(link => {
+                    link.addEventListener('click', function () {
+                        sidebar.classList.remove('sidebar-mobile-show');
+                        mainContent.classList.remove('main-content-mobile-push');
+                    });
+                });
+            }
+
+
+
+            // Cálculo automático do consumo na modal de leitura
+            document.querySelector('#novaLeituraModal input[type="number"]:not([readonly])')?.addEventListener('input', function () {
+                const leituraAnterior = parseFloat(document.querySelector('#novaLeituraModal input[readonly]').value) || 0;
+                const leituraAtual = parseFloat(this.value) || 0;
+                const consumo = leituraAtual - leituraAnterior;
+                document.querySelector('#novaLeituraModal input[readonly]').nextElementSibling.nextElementSibling.querySelector('input').value = consumo > 0 ? consumo : 0;
+            });
+
+
+
+            // Elementos do DOM
+            const clienteSearch = document.getElementById('clienteSearch');
+            const searchResults = document.getElementById('searchResults');
+            const clearSearch = document.getElementById('clearSearch');
+            const faturasTable = document.getElementById('faturasTable');
+            const noFaturas = document.getElementById('noFaturas');
+
+            // Função para buscar clientes
+            function buscarClientes(termo) {
+                return clientes.filter(cliente =>
+                    cliente.nome.toLowerCase().includes(termo.toLowerCase()) ||
+                    cliente.numero.includes(termo)
+                );
+            }
+
+            // Função para exibir resultados da busca
+            function exibirResultados(resultados) {
+                searchResults.innerHTML = '';
+
+                if (resultados.length === 0) {
+                    searchResults.classList.add('d-none');
+                    return;
+                }
+
+                resultados.forEach(cliente => {
+                    const item = document.createElement('button');
+                    item.type = 'button';
+                    item.className = 'list-group-item list-group-item-action';
+                    item.innerHTML = `<strong>${cliente.numero}</strong> - ${cliente.nome}`;
+
+                    item.addEventListener('click', () => {
+                        clienteSearch.value = `${cliente.numero} - ${cliente.nome}`;
+                        searchResults.classList.add('d-none');
+                        carregarFaturas(cliente.numero);
+                    });
+
+                    searchResults.appendChild(item);
+                });
+
+                searchResults.classList.remove('d-none');
+            }
+
+            // Função para carregar faturas do cliente
+            function carregarFaturas(numeroCliente) {
+                const faturas = faturasPorCliente[numeroCliente] || [];
+                const tbody = faturasTable.querySelector('tbody');
+
+                // Limpar tabela
+                tbody.innerHTML = '';
+
+                if (faturas.length === 0) {
+                    noFaturas.style.display = '';
+                    tbody.appendChild(noFaturas);
+                    noFaturas.innerHTML = '<td colspan="8" class="text-center text-muted">Nenhuma fatura encontrada para este cliente</td>';
+                    return;
+                }
+
+                noFaturas.style.display = 'none';
+
+                // Adicionar faturas
+                faturas.forEach(fatura => {
+                    const tr = document.createElement('tr');
+                    const status = fatura.pago >= fatura.valor ? 'Paga' : fatura.pago > 0 ? 'Parcial' : 'Pendente';
+                    const statusClass = status === 'Paga' ? 'bg-success' : status === 'Parcial' ? 'bg-warning' : 'bg-danger';
+
+                    tr.innerHTML = `
+                <td>${fatura.numero}</td>
+                <td>${fatura.periodo}</td>
+                <td>${fatura.descricao}</td>
+                <td>${fatura.data}</td>
+                <td>${fatura.valor.toFixed(2)} MT</td>
+                <td>${fatura.multa.toFixed(2)} MT</td>
+                <td>${fatura.pago.toFixed(2)} MT</td>
+                <td><span class="badge ${statusClass}">${status}</span></td>
+            `;
+
+                    tbody.appendChild(tr);
+                });
+            }
+
+            // Event listeners
+            clienteSearch.addEventListener('input', (e) => {
+                const termo = e.target.value.trim();
+
+                if (termo.length < 2) {
+                    searchResults.classList.add('d-none');
+                    return;
+                }
+
+                const resultados = buscarClientes(termo);
+                exibirResultados(resultados);
+            });
+
+            clearSearch.addEventListener('click', () => {
+                clienteSearch.value = '';
+                searchResults.classList.add('d-none');
+                noFaturas.style.display = '';
+                faturasTable.querySelector('tbody').innerHTML = '';
+                faturasTable.querySelector('tbody').appendChild(noFaturas);
+                noFaturas.innerHTML = '<td colspan="8" class="text-center text-muted">Nenhum cliente selecionado</td>';
+            });
+
+            // Esconder resultados quando clicar fora
+            document.addEventListener('click', (e) => {
+                if (!clienteSearch.contains(e.target)) {
+                    searchResults.classList.add('d-none');
+                }
+            });
+
+            // Função para adicionar campo de telefone adicional
+            function adicionarTelefone() {
+                const container = document.getElementById('telefonesContainer');
+                const novoGrupo = document.createElement('div');
+                novoGrupo.className = 'input-group mb-2 telefone-group';
+                novoGrupo.innerHTML = `
+            <input type="tel" class="form-control" name="telefone[]">
+            <button class="btn btn-outline-danger" type="button" onclick="removerTelefone(this)">
+                <i class="bi bi-dash"></i>
+            </button>
+        `;
+                container.appendChild(novoGrupo);
+            }
+
+            // Função para remover campo de telefone
+            function removerTelefone(botao) {
+                const grupo = botao.closest('.telefone-group');
+                // Não permitir remover o primeiro telefone (é obrigatório)
+                if (document.querySelectorAll('.telefone-group').length > 1) {
+                    grupo.remove();
+                }
+            }
+
+            // Função para registrar cliente (exemplo)
+            function registrarCliente() {
+                const form = document.getElementById('formCliente');
+                if (form.checkValidity()) {
+                    // Aqui você pode adicionar a lógica para enviar os dados
+                    const formData = new FormData(form);
+                    const dadosCliente = Object.fromEntries(formData.entries());
+
+                    // Juntar todos os telefones em array
+                    dadosCliente.telefones = formData.getAll('telefone[]');
+
+                    console.log('Dados do cliente:', dadosCliente);
+                    alert('Cliente registrado com sucesso!');
+
+                    // Fechar o modal
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('novoClienteModal'));
+                    modal.hide();
+
+                    // Limpar formulário
+                    form.reset();
+                    // Manter apenas um campo de telefone
+                    document.getElementById('telefonesContainer').innerHTML = `
+                <div class="input-group mb-2 telefone-group">
+                    <input type="tel" class="form-control" name="telefone[]" required>
+                    <button class="btn btn-outline-secondary" type="button" onclick="adicionarTelefone()">
+                        <i class="bi bi-plus"></i>
+                    </button>
+                </div>
+            `;
+                } else {
+                    form.reportValidity();
+                }
+            }
+
+            const dataLigacao = document.getElementById("data_ligacao");
+            const leituraInicial = document.getElementById("leitura_inicial");
+            const periodoInicial = document.getElementById("periodo_inicial");
+
+            const campos = [dataLigacao, leituraInicial, periodoInicial];
+
+            function validarCamposLigacao() {
+                const algumPreenchido = campos.some(campo => campo.value.trim() !== "");
+
+                campos.forEach(campo => {
+                    if (algumPreenchido) {
+                        campo.setAttribute("required", "required");
+                    } else {
+                        campo.removeAttribute("required");
+                    }
+                });
+            }
+
+            // Adiciona eventos de escuta
+            campos.forEach(campo => {
+                campo.addEventListener("input", validarCamposLigacao);
+            });
+
+
+        </script>
+        <script>
+            const clientes = {
+                "4/18": {
+                    nome: "Ildo Mendes Ngoca",
+                    bairro: "Polana",
+                    morada: "Mumemo A",
+                    faturas: [
+                        { numero: "2509/FN/20", periodo: "Fev", valor: 350, multa: 38.5, saldo: 302.175 },
+                        { numero: "2732/FN/20", periodo: "Mar", valor: 350, multa: 38.5, saldo: 388.5 },
+                        { numero: "2934/FN/20", periodo: "Abr", valor: 350, multa: 38.5, saldo: 388.5 },
+                        { numero: "3131/FN/20", periodo: "Mai", valor: 350, multa: 38.5, saldo: 388.5 }
+                    ]
+                },
+                "2/18": {
+                    nome: "Manuel",
+                    bairro: "Mavalane",
+                    morada: "Rua X",
+                    faturas: [
+                        { numero: "1101/FN/21", periodo: "Jan", valor: 300, multa: 30, saldo: 330 },
+                        { numero: "1102/FN/21", periodo: "Fev", valor: 300, multa: 30, saldo: 330 }
+                    ]
+                }
+            };
+
+            function preencherDadosCliente() {
+                const select = document.getElementById("listaClientes");
+                const id = select.value;
+                const cliente = clientes[id];
+
+                if (!cliente) return;
+
+                document.getElementById("numeroCliente").value = id;
+                document.getElementById("nomeCliente").value = cliente.nome;
+                document.getElementById("bairroCliente").value = cliente.bairro;
+                document.getElementById("moradaCliente").value = cliente.morada;
+
+                const tbody = document.getElementById("tabelaFaturas");
+                tbody.innerHTML = "";
+
+                let totalDivida = 0;
+
+                cliente.faturas.forEach((f, i) => {
+                    totalDivida += f.saldo;
+                    tbody.innerHTML += `
+        <tr>
+          <td><input type="checkbox" onchange="atualizarValorSelecionado()" data-index="${i}" data-id="${id}"></td>
+          <td>${f.numero}</td>
+          <td>${f.periodo}</td>
+          <td>${f.valor}</td>
+          <td>${f.multa}</td>
+          <td>${f.saldo.toFixed(2)}</td>
+        </tr>
+      `;
+                });
+
+                document.getElementById("totalDivida").textContent = totalDivida.toFixed(2);
+                document.getElementById("valorSelecionado").textContent = "0";
+            }
+
+            function atualizarValorSelecionado() {
+                let total = 0;
+                const checkboxes = document.querySelectorAll('#tabelaFaturas input[type="checkbox"]');
+                checkboxes.forEach(cb => {
+                    if (cb.checked) {
+                        const id = cb.dataset.id;
+                        const index = cb.dataset.index;
+                        total += clientes[id].faturas[index].saldo;
+                    }
+                });
+                document.getElementById("valorSelecionado").textContent = total.toFixed(2);
+            }
+
+            function processarPagamento() {
+                const valor = parseFloat(document.getElementById("valorSelecionado").textContent);
+                if (valor === 0) {
+                    alert("Selecione ao menos uma fatura para pagar.");
+                } else {
+                    alert(`Pagamento de ${valor.toFixed(2)} MT processado com sucesso.`);
+                }
+            }
+
+        </script>
+</body>
+
+</html>
