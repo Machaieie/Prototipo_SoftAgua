@@ -605,70 +605,203 @@
                     <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4">
                         <h2><i class="bi bi-water"></i> Leituras</h2>
                         <div class="mt-2 mt-md-0">
-                            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#novaLeituraModal">
-                                <i class="bi bi-plus"></i> <span class="d-none d-md-inline">Nova Leitura</span>
-                            </button>
-                            <button class="btn btn-success ms-2">
-                                <i class="bi bi-file-earmark-excel"></i> <span
-                                    class="d-none d-md-inline">Exportar</span>
+                            <button class="btn btn-primary" id="registrarLeituraBtn">
+                                <i class="bi bi-plus"></i> <span class="d-none d-md-inline">Registrar Leitura</span>
                             </button>
                         </div>
                     </div>
-                    <hr>
 
-                    <div class="row mb-3">
-                        <div class="col-6 col-md-3 mb-2 mb-md-0">
-                            <select class="form-select">
-                                <option selected>Selecione o mês</option>
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <label class="form-label">Período</label>
+                            <select class="form-select" id="periodoLeitura">
+                                <option value="">Selecione...</option>
+                                <option selected>Julho 2025</option>
                                 <option>Junho 2025</option>
                                 <option>Maio 2025</option>
                             </select>
                         </div>
-                        <div class="col-6 col-md-3 mb-2 mb-md-0">
-                            <select class="form-select">
-                                <option selected>Selecione o bairro</option>
+                        <div class="col-md-3">
+                            <label class="form-label">Bairro</label>
+                            <select class="form-select" id="bairroLeitura">
+                                <option value="">Todos</option>
                                 <option>Central</option>
                                 <option>Mavalane</option>
+                                <option>Zimpeto</option>
                             </select>
                         </div>
-                        <div class="col-12 col-md-6 mt-2 mt-md-0">
-                            <div class="input-group">
-                                <input type="text" class="form-control" placeholder="Pesquisar cliente...">
-                                <button class="btn btn-outline-secondary" type="button">
-                                    <i class="bi bi-search"></i>
-                                </button>
-                            </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Status</label>
+                            <select class="form-select" id="statusLeitura">
+                                <option value="">Todos</option>
+                                <option>Pendentes</option>
+                                <option>Registradas</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 d-flex align-items-end">
+                            <button class="btn btn-primary w-100">
+                                <i class="bi bi-search"></i> Filtrar
+                            </button>
                         </div>
                     </div>
 
-                    <div class="table-responsive">
-                        <table class="table table-striped table-hover">
-                            <thead>
-                                <tr>
-                                    <th>Nº Consumidor</th>
-                                    <th>Cliente</th>
-                                    <th>Data Emissão</th>
-                                    <th>Leitura Anterior</th>
-                                    <th>Leitura Atual</th>
-                                    <th>Valor a Pagar</th>
-                                    <th>Ações</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>4/18</td>
-                                    <td>João da Silva</td>
-                                    <td>10/06/2025</td>
-                                    <td>125</td>
-                                    <td>145</td>
-                                    <td>1.250,00 MT</td>
-                                    <td>
-                                        <button class="btn btn-sm btn-outline-primary"><i
-                                                class="bi bi-eye"></i></button>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card mb-4">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <span>Clientes</span>
+                                    <div class="input-group" style="width: 200px;">
+                                        <input type="text" class="form-control form-control-sm"
+                                            placeholder="Pesquisar...">
+                                        <button class="btn btn-outline-secondary btn-sm" type="button">
+                                            <i class="bi bi-search"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="card-body p-0">
+                                    <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                                        <table class="table table-striped table-hover mb-0">
+                                            <thead class="sticky-top bg-light">
+                                                <tr>
+                                                    <th>Nº</th>
+                                                    <th>Nome</th>
+                                                    <th class="d-none d-md-table-cell">Bairro</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="clientesTable">
+                                                <tr onclick="selecionarCliente('2/18', 'Manuel')"
+                                                    style="cursor: pointer;">
+                                                    <td>2/18</td>
+                                                    <td>Manuel</td>
+                                                    <td class="d-none d-md-table-cell">Mavalane</td>
+                                                </tr>
+                                                <tr onclick="selecionarCliente('4/18', 'Ildo Mendes Ngoca')"
+                                                    style="cursor: pointer;">
+                                                    <td>4/18</td>
+                                                    <td>Ildo Mendes Ngoca</td>
+                                                    <td class="d-none d-md-table-cell">Polana</td>
+                                                </tr>
+                                                <!-- Mais clientes aqui -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="card mb-4">
+                                <div class="card-header">
+                                    Identificação
+                                </div>
+                                <div class="card-body">
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label">Nº Consumidor</label>
+                                            <input type="text" class="form-control" id="numeroConsumidor" readonly>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Nome</label>
+                                            <input type="text" class="form-control" id="nomeConsumidor" readonly>
+                                        </div>
+                                        <div class="col-md-12 mt-2">
+                                            <label class="form-label">Morada</label>
+                                            <input type="text" class="form-control" id="moradaConsumidor" readonly>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            
+
+
+
+
+                        </div>
+                        <div class="card mb-4">
+                                <div class="card-header">
+                                    Nº do contador
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <label class="form-label">Índice anterior</label>
+                                            <input type="number" class="form-control" id="indiceAnterior" readonly>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">Índice atual</label>
+                                            <input type="number" class="form-control" id="indiceAtual">
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">Quant (m³)</label>
+                                            <input type="number" class="form-control" id="quantidadeConsumo" readonly>
+                                        </div>
+                                    </div>
+                                    <div class="row mt-2">
+                                        <div class="col-md-6">
+                                            <label class="form-label">Preço Unitário</label>
+                                            <input type="number" class="form-control" id="precoUnitario" readonly>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Valor</label>
+                                            <input type="number" class="form-control" id="valorLeitura" readonly>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        <div class="card">
+                            <div class="card-header">
+                                Histórico de Lançamentos
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="table-responsive" style="max-height: 200px; overflow-y: auto;">
+                                    <table class="table table-striped table-hover mb-0">
+                                        <thead class="sticky-top bg-light">
+                                            <tr>
+                                                <th>Ano</th>
+                                                <th>Período</th>
+                                                <th>Leitura Anterior</th>
+                                                <th>Leitura Atual</th>
+                                                <th>Quant</th>
+                                                <th>Preço</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="historicoLeituras">
+                                            <tr>
+                                                <td>2025</td>
+                                                <td>Jun/25</td>
+                                                <td>8.00</td>
+                                                <td>10.00</td>
+                                                <td>2</td>
+                                                <td>70.00</td>
+                                            </tr>
+                                            <tr>
+                                                <td>2025</td>
+                                                <td>Mai/25</td>
+                                                <td>6.00</td>
+                                                <td>8.00</td>
+                                                <td>2</td>
+                                                <td>70.00</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-between mt-3">
+                            <button class="btn btn-success">
+                                <i class="bi bi-check"></i> Inserir
+                            </button>
+                            <button class="btn btn-danger">
+                                <i class="bi bi-x"></i> Cancelar
+                            </button>
+                            <button class="btn btn-primary">
+                                <i class="bi bi-people"></i> Clientes S/ Leituras
+                            </button>
+                            <button class="btn btn-warning">
+                                <i class="bi bi-pencil"></i> Alterar Período
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -1089,7 +1222,7 @@
                                 </div>
                             </div>
 
-                            <!-- Número do consumidor e data de assinatura -->
+                            <!-- Número do consumidor e data de assinatura
                             <div class="card mb-3 p-3">
                                 <div class="row g-3">
                                     
@@ -1101,7 +1234,7 @@
                                         </div>
                                     </div>
                                 </div>
-                            </div>
+                            </div> -->
 
                             <!-- Dados Pessoais -->
                             <div class="card mb-3 p-3">
@@ -1155,18 +1288,17 @@
                                     </div>
 
                                     <div class="col-md-6">
-                                        <label class="form-label">Telefone(s)*</label>
-                                        <div id="telefonesContainer">
-                                            <div class="input-group mb-2 telefone-group">
-                                                <input type="tel" class="form-control" name="telefone[]" required>
-                                                <button class="btn btn-outline-secondary" type="button"
-                                                    onclick="adicionarTelefone()">
-                                                    <i class="bi bi-plus"></i>
-                                                </button>
-                                            </div>
+                                        <div class="form-floating">
+                                            <input type="text" class="form-control" name="telefone" id="telefone"
+                                                required>
+                                            <label for="telefone">Celular</label>
                                         </div>
-                                        <small class="text-muted">Adicione todos os números de contato do
-                                            cliente</small>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-floating">
+                                            <input type="text" class="form-control" name="fixo" id="fixo" required>
+                                            <label for="fixo">Fixo</label>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -1192,9 +1324,9 @@
 
                                     <div class="col-md-6">
                                         <div class="form-floating">
-                                            <input type="month" class="form-control" name="periodo_inicial"
-                                                id="periodo_inicial">
-                                            <label for="periodo_inicial">Período Inicial</label>
+                                            <input type="number" class="form-control" name="pagamento_inicial"
+                                                id="pagamento_inicial">
+                                            <label for="pagamento_inicial">Pagamento Inicial</label>
                                         </div>
                                     </div>
                                 </div>
@@ -1205,7 +1337,6 @@
                     </div>
 
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-success" onclick="registrarCliente()">Novo Registo</button>
                         <button type="button" class="btn btn-primary">Salvar</button>
                         <button type="button" class="btn btn-warning" data-bs-dismiss="modal">Cancelar</button>
                     </div>
@@ -1816,6 +1947,89 @@
                     alert(`Pagamento de ${valor.toFixed(2)} MT processado com sucesso.`);
                 }
             }
+
+            // Função para selecionar cliente
+            function selecionarCliente(numero, nome) {
+                document.getElementById('numeroConsumidor').value = numero;
+                document.getElementById('nomeConsumidor').value = nome;
+
+                // Simular dados do cliente selecionado
+                if (numero === '2/18') {
+                    document.getElementById('moradaConsumidor').value = 'Rua X, Mavalane';
+                    document.getElementById('indiceAnterior').value = '10.00';
+                    document.getElementById('precoUnitario').value = '70.00';
+                } else if (numero === '4/18') {
+                    document.getElementById('moradaConsumidor').value = 'Mumemo A, Polana';
+                    document.getElementById('indiceAnterior').value = '15.00';
+                    document.getElementById('precoUnitario').value = '70.00';
+                }
+
+                // Limpar campo de leitura atual
+                document.getElementById('indiceAtual').value = '';
+                document.getElementById('quantidadeConsumo').value = '';
+                document.getElementById('valorLeitura').value = '';
+
+                // Destacar linha selecionada
+                document.querySelectorAll('#clientesTable tr').forEach(tr => {
+                    tr.classList.remove('table-primary');
+                });
+                event.currentTarget.classList.add('table-primary');
+            }
+
+            // Calcular consumo quando alterar o índice atual
+            document.getElementById('indiceAtual').addEventListener('input', function () {
+                const anterior = parseFloat(document.getElementById('indiceAnterior').value) || 0;
+                const atual = parseFloat(this.value) || 0;
+                const precoUnitario = parseFloat(document.getElementById('precoUnitario').value) || 0;
+
+                if (atual >= anterior) {
+                    const consumo = atual - anterior;
+                    document.getElementById('quantidadeConsumo').value = consumo.toFixed(2);
+                    document.getElementById('valorLeitura').value = (consumo * precoUnitario).toFixed(2);
+                } else {
+                    document.getElementById('quantidadeConsumo').value = '';
+                    document.getElementById('valorLeitura').value = '';
+                    alert('A leitura atual não pode ser menor que a anterior!');
+                }
+            });
+
+            // Botão para registrar nova leitura
+            document.getElementById('registrarLeituraBtn').addEventListener('click', function () {
+                const numero = document.getElementById('numeroConsumidor').value;
+                const atual = document.getElementById('indiceAtual').value;
+
+                if (!numero) {
+                    alert('Selecione um cliente primeiro!');
+                    return;
+                }
+
+                if (!atual) {
+                    alert('Informe a leitura atual!');
+                    return;
+                }
+
+                // Aqui você pode adicionar a lógica para salvar a leitura
+                alert(`Leitura registrada para o cliente ${numero}: ${atual} m³`);
+
+                // Atualizar histórico (simulação)
+                const historico = document.getElementById('historicoLeituras');
+                const novaLinha = historico.insertRow(0);
+
+                novaLinha.innerHTML = `
+            <td>2025</td>
+            <td>Jul/25</td>
+            <td>${document.getElementById('indiceAnterior').value}</td>
+            <td>${atual}</td>
+            <td>${document.getElementById('quantidadeConsumo').value}</td>
+            <td>${document.getElementById('valorLeitura').value}</td>
+        `;
+
+                // Atualizar índice anterior para próxima leitura
+                document.getElementById('indiceAnterior').value = atual;
+                document.getElementById('indiceAtual').value = '';
+                document.getElementById('quantidadeConsumo').value = '';
+                document.getElementById('valorLeitura').value = '';
+            });
 
         </script>
 </body>
